@@ -30,13 +30,17 @@ object Ex05_Paramorphism extends App with Ex05_Traverse {
       leftExpr.project match {
         case IntValue(a) =>
           rightExpr.project match {
-            case IntValue(b) if a > 0 && b < 0 => s"($a - ${-b})"
-            case IntValue(b) if b > 0 && a < 0 => s"($b - ${-a})"
-            case _                             => s"($leftStr + $rightStr)"
+            case IntValue(b) if a > 0 && b < 0 => s"$a - ${-b}"
+            case IntValue(b) if b > 0 && a < 0 => s"$b - ${-a}"
+            case _                             => s"$leftStr + $rightStr"
           }
         case _ => s"$leftStr + $rightStr"
       }
-    case Multiply((leftExpr, leftStr), (rightExpr, rightStr)) => ??? // TODO print (a² * a) as a³
+    case Multiply((leftExpr, leftStr), (rightExpr, rightStr)) =>
+      leftExpr.project match {
+        case Square(a) if a == rightExpr => s"($rightStr)^3"
+        case _ => s"($leftStr) * ($rightStr)"
+      }
     case Square((_, str))                                     => s"$str²"
   }
 

@@ -17,7 +17,9 @@ object Ex04_Anamorphism extends App with Ex04_Traverse {
   // Int => Expr[Int] consisting of only 1s and 2s
   val toBinary: Coalgebra[Expr, Int] = (n: Int) =>
     n match {
-      case _ => ??? // TODO
+      case n if n <= 2 => IntValue(n)
+      case n if n % 2 == 0 => Multiply(2, n / 2)
+      case n => Sum(1, n - 1)
   }
 
   val toText: Algebra[Expr, String] = {

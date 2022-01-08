@@ -38,7 +38,16 @@ object Ex03_Catamorphism extends App with Ex03_Traverse {
   )
 
   // comment this out and recompile to see an implicit resolution error
-  implicit val ExprFunctor: Functor[Expr] = ??? // TODO
+  implicit val ExprFunctor: Functor[Expr] = new Functor[Expr] {
+    override def map[A, B](fa: Expr[A])(f: A => B): Expr[B] = fa match {
+      case IntValue(v)      => IntValue(v)
+      case DecValue(v)      => DecValue(v)
+      case Sum(d1, d2)      => Sum(f(d1), f(d2))
+      case Multiply(d1, d2) => Multiply(f(d1), f(d2))
+      case Divide(d1, d2)   => Divide(f(d1), f(d2))
+      case Square(d)        => Square(f(d))
+    }
+  }
 
   println(s"Expression: $sumExpr\nExpr evaluated to double: ${sumExpr.cata(evalToDouble)}")
 
@@ -52,10 +61,20 @@ object Ex03_Catamorphism extends App with Ex03_Traverse {
       IntValue[Fix[Expr]](5).embed
     ).embed
 
-  val fixedDivision: Fix[Expr] = ??? // TODO use .embed
+  val fixedDivision: Fix[Expr] =
+    Divide(
+      DecValue[Fix[Expr]](5.2).embed,
+      Sum(
+        IntValue[Fix[Expr]](10).embed,
+        IntValue[Fix[Expr]](5).embed
+      ).embed
+    ).embed
 
   // optimization
-  def optimizeSqr(expr: Fix[Expr]): Fix[Expr] = ??? // TODO (use .project and .embed)
+  def optimizeSqr(expr: Fix[Expr]): Fix[Expr] = expr.project match {
+    case Multiply(a, b) if a == b => Square(a).embed
+    case other => other.embed
+  }
 
   // how to apply this function?
   // transCataT
@@ -75,7 +94,14 @@ object Ex03_Catamorphism extends App with Ex03_Traverse {
 
   // AlgebraM
   def evalToDoubleOrErr(exp: Expr[Double]): \/[String, Double] = exp match {
-    case _ => ??? // TODO
+    case IntValue(v)      => v.toDouble.right
+    case DecValue(v)      => v.right
+    case Sum(d1, d2)      => (d1 + d2).right
+    case Multiply(d1, d2) => (d1 * d2).right
+    case Divide(_, d2) if d2.abs < 0.01 =>
+      "Division by zero".left
+    case Divide(d1, d2)   => (d1 / d2).right
+    case Square(d)        => (d * d).right
   }
 
   val correctExpr: Fix[Expr] =
@@ -98,6 +124,6 @@ object Ex03_Catamorphism extends App with Ex03_Traverse {
 
   implicit val traverse = traverseExpr
 
-  correctExpr.cataM(evalToDoubleOrErr)   // Right(6.2)
-  incorrectExpr.cataM(evalToDoubleOrErr) // Left("Division by zero!")
+  println(correctExpr.cataM(evalToDoubleOrErr))   // Right(6.2)
+  println(incorrectExpr.cataM(evalToDoubleOrErr)) // Left("Division by zero!")
 }

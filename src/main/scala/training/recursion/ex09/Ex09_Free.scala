@@ -29,7 +29,14 @@ object Ex09_Free extends App {
     _   <- Free.liftF(Draw(sq): CalcAction[Unit])
   } yield ()
 
-  val interpreter: ~>[CalcAction, Id] = ???
+  val interpreter: ~>[CalcAction, Id] = new ~>[CalcAction, Id] {
+    override def apply[A](fa: CalcAction[A]): Id[A] = fa match {
+      case IntValue(v)  => v
+      case Sum(a, b)    => a + b
+      case Square(v)    => v * v
+      case Draw(v)      => println(v)
+    }
+  }
 
   program.foldMap(interpreter) // catamorphism
 }

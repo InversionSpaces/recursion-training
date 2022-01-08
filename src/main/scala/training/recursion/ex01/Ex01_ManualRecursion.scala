@@ -24,9 +24,19 @@ object Ex01_ManualRecursion extends App {
       case Divide(e1, e2)   => eval(e1) / eval(e2)
     }
 
-  def prettyPrint(e: Expr): String = ??? // TODO
+  def prettyPrint(e: Expr): String = e match {
+    case IntValue(v)      => v.toString
+    case DecValue(v)      => v.toString
+    case Sum(e1, e2)      => s"${prettyPrint(e1)} + ${prettyPrint(e2)}"
+    case Multiply(e1, e2) => s"(${prettyPrint(e1)}) * (${prettyPrint(e2)})"
+    case Square(e)        => s"(${prettyPrint(e)})^2}"
+    case Divide(e1, e2)   => s"(${prettyPrint(e1)}) / (${prettyPrint(e2)})"
+  }
 
-  def optimize(e: Expr): Expr = ??? // TODO Multiply(x, x) -> Square(x)
+  def optimize(e: Expr): Expr = e match {
+    case Multiply(x, y) if x == y => Square(x)
+    case other => other
+  }
 
   val expr1 = Sum(IntValue(3), Multiply(IntValue(5), DecValue(-2)))
 
